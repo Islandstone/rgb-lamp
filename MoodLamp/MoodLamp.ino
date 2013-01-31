@@ -37,26 +37,30 @@ int out[] = {RED, GREEN, BLUE, WHITE};
 
 int lastReadPause = LOW;
 int lastReadNext = LOW;
-int mode = 0;
+int mode = 4;
+int curSpeed = 1;
+int numModes = 5;
+int numSpeeds = 6;
+double lowRand = 0.3;
+double highRand = 1;
 
 boolean skip = false;
 
-double offset = 0.0;
 double lastPushTime = 0.0;
 
 void setup() {
   randomSeed(analogRead(0));
   currentColor = random(0, colorCount - 1);
-  
   for (int i = 0; i < 4; i++) {
-    power[i] = 0;
+    power[i] = 15;
+    mod[i] = getRandom();
   }
 
   pinMode(RED, OUTPUT);
   pinMode(GREEN, OUTPUT);
   pinMode(BLUE, OUTPUT);
   pinMode(WHITE, OUTPUT);
-  pinMode(PAUSEBUTTON, INPUT);
+  pinMode(SPEEDBUTTON, INPUT);
   pinMode(NEXTBUTTON, INPUT);
 
   Serial.begin(9600);
@@ -78,7 +82,7 @@ int getColorForChar(char c) {
 }
 
 int clamp(int val, int min, int max) {
-  if (val < min)  return min;
+  if (val < min) return min;
   if (val > max) return max;  
   return val;
 }
@@ -156,79 +160,52 @@ void loop() {
 }
 */
 
-/*
-void loop() {
-  analogWrite(RED, 255);
-  analogWrite(GREEN, 255);
-  analogWrite(BLUE, 255);
-  analogWrite(WHITE, 255);
-}
-*/
 
-/*
 void loop() {
-  analogWrite(RED, 255);
-  delay(1000);
-  analogWrite(RED, 0);
-  analogWrite(GREEN, 255);
-  delay(1000);
-  analogWrite(GREEN, 0);
-  analogWrite(BLUE, 255);
-  delay(1000);
-  analogWrite(BLUE, 0);
-  analogWrite(WHITE, 255);
-  delay(1000);
-  analogWrite(WHITE, 0);
-}
-*/
-
-/*
-void loop() {
-  int valPause = digitalRead(PAUSEBUTTON);
+  int valSpeed = digitalRead(SPEEDBUTTON);
   int valNextMode = digitalRead(NEXTBUTTON);
   double time = millis() / 1000.0;
 
-  if (valPause == LOW && lastReadPause == HIGH) {
-    skip = !skip;
-
-    if (skip) {
-      lastPushTime = time;
-    } 
-    else {
-      offset = time - lastPushTime;
-    }
+  if (valSpeed == LOW && lastReadSpeed == HIGH) {
+    curSpeed += 1;
+    curSpeed %= numSpeeds;
   }
 
   if (valNextMode == LOW && lastReadNext== HIGH) {
     mode++;
-    mode%=2;
+    mode%=numModes;
   }
 
-  lastReadPause = valPause;
+  lastReadSpeed = valSpeed;
   lastReadNext = valNextMode;
 
   if (skip) {
     return;
   }  
 
-  double red = 0.5 * (sin(time - offset) + 1);
-  
-  if (mode == 0) {
-    analogWrite(RED, red * 255);
-    analogWrite(BLUE, 0);    
-    analogWrite(GREEN, 0);
-  } 
-  else {
-    for (int i = 0; i < 3; i++) {
-      if (power[i] < 0 || 255 < power[i]) {
-        mod[i] *= -1;  
-      }
-      power[i] += mod[i];
 
-      analogWrite(out[i], power[i]);
+  for (int i = 0; i < 4; i++) {
+    if (mode != 4 && mode != i) {
+      analogWrite(out[i], 0);
+      continue;
     }
-  }
+    if (random(0,100) == 0) {
+      mod[i] = -mod[i];
+    }
+    if (power[i] < outLow[i]) {
+      power[i] = outLow[i];
+      mod[i] = getRandom();
+    }
+    if (outHigh[i] < power[i]) {
+      power[i] = outHigh[i];
+      mod[i] = -getRandom();
+    }
+    Serial.println(power[i]);
+    power[i] += mod[i] * speeds[curSpeed];
 
-  delay(2);
+    analogWrite(out[i], power[i]);
+  }
+  delay(1);
+
 }
 */
