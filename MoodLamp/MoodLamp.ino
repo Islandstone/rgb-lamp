@@ -160,7 +160,7 @@ void loop() {
 }
 */
 
-
+/*
 void loop() {
   int valSpeed = digitalRead(SPEEDBUTTON);
   int valNextMode = digitalRead(NEXTBUTTON);
